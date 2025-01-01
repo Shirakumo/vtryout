@@ -1,6 +1,7 @@
 (in-package #:org.shirakumo.fraf.vtryout)
 
-(defclass main (trial:main)
+(defclass main (org.shirakumo.fraf.trial.harmony:settings-main
+                org.shirakumo.fraf.trial.notify:main)
   ((trial:scene :initform (make-instance 'scene))))
 
 (defmethod initialize-instance :after ((main main) &key)

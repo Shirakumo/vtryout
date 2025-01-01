@@ -12,9 +12,8 @@
   (setup-pipeline scene))
 
 (defmethod setup-scene ((scene scene) (asset model-file))
-  (leave* 'level scene)
+  (generate-resources asset T :load-scene T)
   (ensure-entity 'ambient-light scene 'ambient-light :color (vec3 0.1))
-  (enter (make-instance 'level :name 'level :asset asset) scene)
   (loop for pass across (passes scene)
         do (dolist (thing (to-preload scene))
              (when (typep thing '(or class entity))
@@ -43,9 +42,9 @@
        (post-effects-pass :name 'post))
     ((z-prepass NIL depth) (render depth-map))
     ((z-prepass NIL depth) (post depth-map))
-    ((render bloom-cutoff-pass (bloom-merge-pass bloom-cutoff color) tone-map)
-     (render bloom-merge-pass))
-    ((tone-map fxaa-pass post))
+    (render bloom-cutoff-pass (bloom-merge-pass bloom-cutoff color) tone-map)
+    (render bloom-merge-pass)
+    (tone-map fxaa-pass post)
     (trial-alloy:ui (post ui-map))))
 
 (define-shader-pass post-effects-pass (post-effect-pass)

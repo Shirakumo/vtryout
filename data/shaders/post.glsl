@@ -7,8 +7,7 @@ out vec4 color;
 in vec2 uv;
 
 void main(){
-  color.a = 1.0;
-  color.rgb = post_process(previous_pass, uv);
+  color = post_process(previous_pass, uv);
   
   vec4 ui = texture(ui_map, uv);
   color.rgb = mix(color.rgb, ui.rgb, ui.a);

@@ -10,7 +10,9 @@
   :components ((:file "package")
                (:file "toolkit")
                (:file "scene")
-               (:file "main"))
+               (:file "main")
+               (:module "ui"
+                :components ((:file "laf"))))
   :serial T
   :defsystem-depends-on (:deploy)
   :depends-on (:trial-glfw
