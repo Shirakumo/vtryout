@@ -1,0 +1,23 @@
+(defpackage #:vtryout
+  (:nicknames #:org.shirakumo.fraf.vtryout)
+  (:use #:cl+trial)
+  (:shadow #:main #:launch #:scene)
+  (:local-nicknames
+   (#:v #:org.shirakumo.verbose)
+   (#:alloy #:org.shirakumo.alloy)
+   (#:trial-alloy #:org.shirakumo.fraf.trial.alloy)
+   (#:simple #:org.shirakumo.alloy.renderers.simple)
+   (#:presentations #:org.shirakumo.alloy.renderers.simple.presentations)
+   (#:opengl #:org.shirakumo.alloy.renderers.opengl)
+   (#:colored #:org.shirakumo.alloy.colored)
+   (#:colors #:org.shirakumo.alloy.colored.colors)
+   (#:animation #:org.shirakumo.alloy.animation)
+   (#:gamepad #:org.shirakumo.fraf.gamepad)
+   (#:harmony #:org.shirakumo.fraf.harmony.user)
+   (#:trial-harmony #:org.shirakumo.fraf.trial.harmony)
+   (#:mixed #:org.shirakumo.fraf.mixed)
+   (#:3ds #:org.shirakumo.fraf.trial.space)
+   (#:gltf #:org.shirakumo.fraf.gltf)
+   (#:trial-gltf #:org.shirakumo.fraf.trial.gltf))
+  (:export
+   #:launch))
