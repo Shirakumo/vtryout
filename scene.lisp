@@ -1,5 +1,7 @@
 (in-package #:org.shirakumo.fraf.vtryout)
 
+(define-event change-scene () file name)
+
 (defclass scene (pipelined-scene)
   ((camera :initform (make-instance 'editor-camera))))
 
@@ -10,14 +12,6 @@
   (setf (mixed:soundspeed :effect) 343.3)
   (enter (camera scene) scene)
   (setup-pipeline scene))
-
-(defmethod setup-scene ((scene scene) (asset model-file))
-  (generate-resources asset T :load-scene T)
-  (ensure-entity 'ambient-light scene 'ambient-light :color (vec3 0.1))
-  (loop for pass across (passes scene)
-        do (dolist (thing (to-preload scene))
-             (when (typep thing '(or class entity))
-               (enter thing pass)))))
 
 (defmethod setup-pipeline ((scene scene))
   (construct-pipeline scene
@@ -46,6 +40,16 @@
     (render bloom-merge-pass)
     (tone-map fxaa-pass post)
     (trial-alloy:ui (post ui-map))))
+
+(define-handler (scene change-scene) (file name)
+  (generate-resources (make-instance 'model-file :input file :pool (find-pool 'vtryout)) T
+                      :load-scene name)
+  (loop for pass across (passes scene)
+        do (dolist (thing (to-preload scene))
+             (when (typep thing '(or class entity))
+               (enter thing pass))))
+  (commit scene (loader +main+))
+  (ignore-errors (reset-render-loop)))
 
 (define-shader-pass post-effects-pass (post-effect-pass)
   ((ui-map :port-type input :accessor ui-map)

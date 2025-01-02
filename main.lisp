@@ -2,10 +2,11 @@
 
 (defclass main (org.shirakumo.fraf.trial.harmony:settings-main
                 org.shirakumo.fraf.trial.notify:main)
-  ((trial:scene :initform (make-instance 'scene))))
+  ((trial:scene :initform (make-instance 'scene) :accessor scene)))
 
-(defmethod initialize-instance :after ((main main) &key)
-  (org.shirakumo.fraf.trial.notify:watch (find-pool 'vtryout)))
+(defmethod initialize-instance :after ((main main) &key scene-file (scene T))
+  (org.shirakumo.fraf.trial.notify:watch (find-pool 'vtryout))
+  (when scene-file (issue (scene main) 'change-scene :file scene-file :name scene)))
 
 (defmethod trial-harmony:server-initargs append ((main main))
   (list :mixers '((:music mixed:basic-mixer :effects ((mixed:biquad-filter :filter :lowpass :name :music-lowpass)))
