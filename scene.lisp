@@ -21,13 +21,14 @@
         :ssao-radius 0.3
         :ssao-bias 0.1
         :allow-other-keys T)
-       bloom-cutoff-pass
+       (bloom-cutoff-pass :name 'bloom-cutoff-pass
+                          :threshold 1.0)
        (bloom-merge-pass :name 'bloom-merge-pass
                          :intensity 2.0)
        (uchimura :name 'tone-map
                  :max-brightness 1.0
-                 :contrast 0.3
-                 :linear-start 0.1
+                 :contrast 1.0
+                 :linear-start 0.22
                  :linear-length 0.4
                  :black-tightness-shape 1.33
                  :black-tightness-offset 0.0)
@@ -44,6 +45,7 @@
 (define-handler (scene change-scene) (file name)
   (generate-resources (make-instance 'model-file :input file :pool (find-pool 'vtryout)) T
                       :load-scene name)
+  (ensure-entity 'ambient-light scene 'ambient-light :color (vec3 0.01))
   (loop for pass across (passes scene)
         do (dolist (thing (to-preload scene))
              (when (typep thing '(or class entity))
@@ -58,12 +60,18 @@
    (color :port-type output :accessor color)
    (midpoint :uniform T :initform (vec3 0.5) :accessor midpoint)
    (color-filter :uniform T :initform (vec3 1) :accessor color-filter)
-   (exposure :uniform T :initform (vec3 1.2) :accessor exposure)
-   (contrast :uniform T :initform (vec3 1.2) :accessor contrast)
-   (brightness :uniform T :initform (vec3 -0.1) :accessor brightness)
-   (saturation :uniform T :initform (vec3 1.2) :accessor saturation)
+   (exposure :uniform T :initform (vec3 1) :accessor exposure)
+   (contrast :uniform T :initform (vec3 1) :accessor contrast)
+   (brightness :uniform T :initform (vec3 0) :accessor brightness)
+   (saturation :uniform T :initform (vec3 1) :accessor saturation)
    (temperature :uniform T :initform 0.0 :accessor temperature)
    (tint :uniform T :initform 0.0 :accessor tint)
    (hue :uniform T :initform 0.0 :accessor hue))
   (:shader-file (vtryout "shaders/post.glsl"))
   (:buffers (trial standard-environment-information)))
+
+#++
+(progn
+  (activate (elt (node :front T) 0))
+  (play :idle (node :yukari T))
+  (add-animation-layer :sitting (node :yukari T) :strength 1.0))
