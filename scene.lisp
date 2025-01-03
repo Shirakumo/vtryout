@@ -3,7 +3,8 @@
 (define-event change-scene () file name camera)
 
 (defclass scene (pipelined-scene)
-  ((camera :initform (make-instance 'editor-camera :name :editor :move-speed 0.1))))
+  ((camera :initform (make-instance 'editor-camera :name :editor :move-speed 0.1))
+   (transparent-p :initform T :initarg :transparent :accessor transparent-p)))
 
 (defmethod setup-scene ((main trial:main) (scene scene))
   ;; Units are in metres, so adjust accordingly.
@@ -25,16 +26,19 @@
                           :threshold 1.0)
        (bloom-merge-pass :name 'bloom-merge-pass
                          :intensity 2.0)
-       (ward :name 'tone-map)
+       (narkowicz-aces :name 'tone-map)
        fxaa-pass
        (ui :name 'trial-alloy:ui)
        (post-effects-pass :name 'post))
     ((z-prepass NIL depth) (render depth-map))
     ((z-prepass NIL depth) (post depth-map))
-    (render bloom-cutoff-pass (bloom-merge-pass bloom-cutoff color) tone-map)
     (render bloom-merge-pass)
+    (render bloom-cutoff-pass (bloom-merge-pass bloom-cutoff color) tone-map)
     (tone-map fxaa-pass post)
     (trial-alloy:ui (post ui-map))))
+
+(defmethod in-view-p ((skybox skybox) camera)
+  (not (transparent-p (trial:scene skybox))))
 
 (define-handler (scene change-scene) (file name camera)
   (setf (camera scene) (node :editor scene))

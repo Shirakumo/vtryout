@@ -27,6 +27,8 @@
                                         :height (second (setting :display :resolution))
                                         :vsync (setting :display :vsync)
                                         :fullscreen (setting :display :fullscreen)
+                                        :transparent-framebuffer T
+                                        :decorated NIL
                                         :title "VTryOut"
                                         :version '(4 1)
                                         :profile :core)

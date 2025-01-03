@@ -10,5 +10,5 @@ void main(){
   color = post_process(previous_pass, uv);
   
   vec4 ui = texture(ui_map, uv);
-  color.rgb = mix(color.rgb, ui.rgb, ui.a);
+  color = mix(color, ui, ui.a);
 }
