@@ -1,6 +1,6 @@
 (in-package #:org.shirakumo.fraf.vtryout)
 
-(define-event change-scene () file name)
+(define-event change-scene () file name camera)
 
 (defclass scene (pipelined-scene)
   ((camera :initform (make-instance 'editor-camera :name :editor :move-speed 0.1))))
@@ -25,13 +25,7 @@
                           :threshold 1.0)
        (bloom-merge-pass :name 'bloom-merge-pass
                          :intensity 2.0)
-       (uchimura :name 'tone-map
-                 :max-brightness 1.0
-                 :contrast 1.0
-                 :linear-start 0.22
-                 :linear-length 0.4
-                 :black-tightness-shape 1.33
-                 :black-tightness-offset 0.0)
+       (ward :name 'tone-map)
        fxaa-pass
        (ui :name 'trial-alloy:ui)
        (post-effects-pass :name 'post))
@@ -42,7 +36,8 @@
     (tone-map fxaa-pass post)
     (trial-alloy:ui (post ui-map))))
 
-(define-handler (scene change-scene) (file name)
+(define-handler (scene change-scene) (file name camera)
+  (setf (camera scene) (node :editor scene))
   (generate-resources (make-instance 'model-file :input file :pool (find-pool 'vtryout)) T
                       :load-scene name)
   (ensure-entity 'ambient-light scene 'ambient-light :color (vec3 0.01))
@@ -50,6 +45,8 @@
         do (dolist (thing (to-preload scene))
              (when (typep thing '(or class entity))
                (enter thing pass))))
+  (when camera
+    (activate-camera camera scene))
   (commit scene (loader +main+))
   (ignore-errors (reset-render-loop)))
 
@@ -75,9 +72,9 @@
     (when (typep node 'animation-controller)
       (return node))))
 
-(defun activate-camera (name)
-  (do-scene-graph (node (print (node name T)))
-    (when (typep (print node) 'camera)
+(defun activate-camera (name &optional (scene T))
+  (do-scene-graph (node (node name scene))
+    (when (typep node 'camera)
       (activate node)
       (return))))
 
@@ -87,3 +84,4 @@
   (if (animation-layer name actor)
       (remove-animation-layer name actor)
       (add-animation-layer name actor :strength strength)))
+

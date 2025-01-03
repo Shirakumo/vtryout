@@ -4,9 +4,9 @@
                 org.shirakumo.fraf.trial.notify:main)
   ((trial:scene :initform (make-instance 'scene) :accessor scene)))
 
-(defmethod initialize-instance :after ((main main) &key scene-file (scene T))
+(defmethod initialize-instance :after ((main main) &key scene-file (scene T) camera)
   (org.shirakumo.fraf.trial.notify:watch (find-pool 'vtryout))
-  (when scene-file (issue (scene main) 'change-scene :file scene-file :name scene)))
+  (when scene-file (issue (scene main) 'change-scene :file scene-file :name scene :camera camera)))
 
 (defmethod trial-harmony:server-initargs append ((main main))
   (list :mixers '((:music mixed:basic-mixer :effects ((mixed:biquad-filter :filter :lowpass :name :music-lowpass)))
