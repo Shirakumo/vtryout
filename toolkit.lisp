@@ -33,3 +33,6 @@
                              :system-stats NIL))))
 
 (define-pool vtryout)
+
+(defmacro ! (&body body)
+  `(with-eval-in-render-loop () ,@body))

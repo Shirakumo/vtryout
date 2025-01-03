@@ -3,7 +3,7 @@
 (define-event change-scene () file name)
 
 (defclass scene (pipelined-scene)
-  ((camera :initform (make-instance 'editor-camera))))
+  ((camera :initform (make-instance 'editor-camera :name :editor :move-speed 0.1))))
 
 (defmethod setup-scene ((main trial:main) (scene scene))
   ;; Units are in metres, so adjust accordingly.
@@ -70,8 +70,20 @@
   (:shader-file (vtryout "shaders/post.glsl"))
   (:buffers (trial standard-environment-information)))
 
-#++
-(progn
-  (activate (elt (node :front T) 0))
-  (play :idle (node :yukari T))
-  (add-animation-layer :sitting (node :yukari T) :strength 1.0))
+(defun actor ()
+  (do-scene-graph (node (scene +main+))
+    (when (typep node 'animation-controller)
+      (return node))))
+
+(defun activate-camera (name)
+  (do-scene-graph (node (print (node name T)))
+    (when (typep (print node) 'camera)
+      (activate node)
+      (return))))
+
+(defun toggle-layer (name &key (actor (actor)) (strength 1.0))
+  (unless (clip actor)
+    (play :idle actor))
+  (if (animation-layer name actor)
+      (remove-animation-layer name actor)
+      (add-animation-layer name actor :strength strength)))
