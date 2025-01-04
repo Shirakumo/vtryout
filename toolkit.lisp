@@ -3,7 +3,7 @@
 (define-global +scene+ NIL)
 (define-global +app-system+ "vtryout")
 (define-global +settings+
-    (copy-tree '(:audio (:latency 0.02
+    (copy-tree '(:audio (:latency 0.01
                          :backend :default
                          :device NIL
                          :volume (:master 0.5

@@ -14,9 +14,13 @@
   (setf (mixed:max-distance :effect) 500.0)
   (setf (mixed:soundspeed :effect) 343.3)
   ;; Connect the source up.
-  (let ((seg (make-instance 'speech-detection)))
-    (harmony:add-to :sources seg)
-    (harmony:connect :source 0 seg 0)))
+  (let ((input (harmony:segment :input server))
+        (fft (make-instance 'mixed:fwd-fft :samplerate (harmony:samplerate server)))
+        (seg (make-instance 'speech-detection :name 'speech-detection)))
+    (harmony:connect input T fft T)
+    (mixed:connect fft 0 seg 0 (mixed:make-buffer 2048))
+    (harmony:add-to input fft seg)
+    (setf (harmony:segment (harmony:name seg) server) seg)))
 
 (defmethod trial-harmony:server-initargs append ((main main))
   (list :mixers '((:music mixed:basic-mixer :effects ((mixed:biquad-filter :filter :lowpass :name :music-lowpass)))

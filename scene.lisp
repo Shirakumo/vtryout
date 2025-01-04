@@ -7,6 +7,7 @@
    (transparent-p :initform T :initarg :transparent :accessor transparent-p)))
 
 (defmethod setup-scene ((main trial:main) (scene scene))
+  (enter (make-instance 'display-controller) scene)
   (enter (camera scene) scene)
   (setup-pipeline scene))
 
@@ -32,6 +33,22 @@
     (render bloom-cutoff-pass (bloom-merge-pass bloom-cutoff color) tone-map)
     (tone-map fxaa-pass post)
     (trial-alloy:ui (post ui-map))))
+
+(defmethod object-renderable-p ((_ fps-counter) (pass standard-render-pass)) NIL)
+(defmethod object-renderable-p ((_ system-stats) (pass standard-render-pass)) NIL)
+(defmethod object-renderable-p ((_ debug-draw) (pass standard-render-pass)) NIL)
+(defmethod object-renderable-p ((_ debug-text) (pass standard-render-pass)) NIL)
+
+(defmethod render :after ((scene scene) (target null))
+  (let ((passes (passes scene)))
+    (bind (framebuffer (aref passes (1- (length passes)))) :framebuffer))
+  (flet ((maybe-render (name)
+           (let ((node (node name scene)))
+             (when (typep node 'renderable) (render node target)))))
+    (maybe-render 'debug-draw)
+    (maybe-render 'system-stats)
+    (maybe-render 'fps-counter)
+    (maybe-render :controller)))
 
 (defmethod in-view-p ((skybox skybox) camera)
   (not (transparent-p (trial:scene skybox))))
