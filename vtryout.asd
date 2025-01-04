@@ -9,6 +9,7 @@
   :entry-point "org.shirakumo.fraf.vtryout::main"
   :components ((:file "package")
                (:file "toolkit")
+               (:file "speech-detection")
                (:file "scene")
                (:file "main")
                (:module "ui"

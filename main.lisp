@@ -8,11 +8,22 @@
   (org.shirakumo.fraf.trial.notify:watch (find-pool 'vtryout))
   (when scene-file (issue (scene main) 'change-scene :file scene-file :name scene :camera camera)))
 
+(defmethod trial-harmony:setup-server progn ((main main) server)
+  ;; Units are in metres, so adjust accordingly.
+  (setf (mixed:min-distance :effect) 10.0)
+  (setf (mixed:max-distance :effect) 500.0)
+  (setf (mixed:soundspeed :effect) 343.3)
+  ;; Connect the source up.
+  (let ((seg (make-instance 'speech-detection)))
+    (harmony:add-to :sources seg)
+    (harmony:connect :source 0 seg 0)))
+
 (defmethod trial-harmony:server-initargs append ((main main))
   (list :mixers '((:music mixed:basic-mixer :effects ((mixed:biquad-filter :filter :lowpass :name :music-lowpass)))
                   (:effect mixed:space-mixer))
         :effects '((mixed:biquad-filter :filter :lowpass :name :lowpass)
-                   (mixed:speed-change :name :speed))))
+                   (mixed:speed-change :name :speed))
+        :source T))
 
 (defun launch (&rest initargs)
   (let ((*package* #.*package*))

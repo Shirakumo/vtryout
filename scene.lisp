@@ -7,10 +7,6 @@
    (transparent-p :initform T :initarg :transparent :accessor transparent-p)))
 
 (defmethod setup-scene ((main trial:main) (scene scene))
-  ;; Units are in metres, so adjust accordingly.
-  (setf (mixed:min-distance :effect) 10.0)
-  (setf (mixed:max-distance :effect) 500.0)
-  (setf (mixed:soundspeed :effect) 343.3)
   (enter (camera scene) scene)
   (setup-pipeline scene))
 
@@ -26,7 +22,7 @@
                           :threshold 1.0)
        (bloom-merge-pass :name 'bloom-merge-pass
                          :intensity 2.0)
-       (narkowicz-aces :name 'tone-map)
+       (hable :name 'tone-map)
        fxaa-pass
        (ui :name 'trial-alloy:ui)
        (post-effects-pass :name 'post))
