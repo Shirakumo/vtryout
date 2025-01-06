@@ -34,5 +34,14 @@
 
 (define-pool vtryout)
 
+(defun n (name)
+  (node name T))
+
+(defun leave* (thing scene)
+  (let ((thing (node thing scene)))
+    (when thing (leave thing scene))))
+
 (defmacro ! (&body body)
-  `(with-eval-in-render-loop () ,@body))
+  `(when (and +main+ (scene +main+))
+     (with-eval-in-render-loop ()
+       ,@body)))

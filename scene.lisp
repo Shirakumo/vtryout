@@ -2,6 +2,22 @@
 
 (define-event change-scene () file name camera)
 
+(defclass room (prefab basic-node)
+  ((prefab-asset :initarg :asset :accessor prefab-asset)
+   (scene-name :initarg :scene-name :initform T :accessor scene-name)))
+
+(defmethod stage :after ((room room) (area staging-area))
+  (org.shirakumo.fraf.trial.notify:watch room)
+  (register-load-observer area room (prefab-asset room))
+  (stage (prefab-asset room) area))
+
+(defun actor-p (child)
+  (typep child 'basic-animation-controller))
+
+(define-prefab-instantiation room ()
+  (enter T :children-only T :scene (scene-name room))
+  (change-class #'actor-p actor))
+
 (defclass scene (pipelined-scene)
   ((camera :initform (make-instance 'editor-camera :name :editor :move-speed 0.1))
    (transparent-p :initform T :initarg :transparent :accessor transparent-p)))
@@ -55,16 +71,19 @@
 
 (define-handler (scene change-scene) (file name camera)
   (setf (camera scene) (node :editor scene))
-  (generate-resources (make-instance 'model-file :input file :pool (find-pool 'vtryout)) T
-                      :load-scene name)
+  (leave* 'room scene)
+  (enter (make-instance 'room :name 'room
+                              :asset (make-instance 'model-file :input file :pool (find-pool 'vtryout))
+                              :scene-name name)
+         scene)
   (ensure-entity 'ambient-light scene 'ambient-light :color (vec3 0.01))
   (loop for pass across (passes scene)
         do (dolist (thing (to-preload scene))
              (when (typep thing '(or class entity))
                (enter thing pass))))
+  (commit scene (loader +main+))
   (when camera
     (activate-camera camera scene))
-  (commit scene (loader +main+))
   (ignore-errors (reset-render-loop)))
 
 (define-shader-pass post-effects-pass (post-effect-pass)
@@ -83,22 +102,4 @@
    (hue :uniform T :initform 0.0 :accessor hue))
   (:shader-file (vtryout "shaders/post.glsl"))
   (:buffers (trial standard-environment-information)))
-
-(defun actor ()
-  (do-scene-graph (node (scene +main+))
-    (when (typep node 'animation-controller)
-      (return node))))
-
-(defun activate-camera (name &optional (scene T))
-  (do-scene-graph (node (node name scene))
-    (when (typep node 'camera)
-      (activate node)
-      (return))))
-
-(defun toggle-layer (name &key (actor (actor)) (strength 1.0))
-  (unless (clip actor)
-    (play :idle actor))
-  (if (animation-layer name actor)
-      (remove-animation-layer name actor)
-      (add-animation-layer name actor :strength strength)))
 

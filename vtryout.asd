@@ -10,6 +10,7 @@
   :components ((:file "package")
                (:file "toolkit")
                (:file "speech-detection")
+               (:file "actor")
                (:file "scene")
                (:file "main")
                (:module "ui"

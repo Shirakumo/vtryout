@@ -1,7 +1,7 @@
 (defpackage #:vtryout
   (:nicknames #:org.shirakumo.fraf.vtryout)
   (:use #:cl+trial)
-  (:shadow #:main #:launch #:scene)
+  (:shadow #:main #:launch #:scene #:room)
   (:local-nicknames
    (#:v #:org.shirakumo.verbose)
    (#:alloy #:org.shirakumo.alloy)
