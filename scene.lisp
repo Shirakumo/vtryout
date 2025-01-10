@@ -1,6 +1,6 @@
 (in-package #:org.shirakumo.fraf.vtryout)
 
-(define-event change-scene () file name camera)
+(define-event change-scene () file scene camera actors)
 
 (defclass room (prefab basic-node)
   ((prefab-asset :initarg :asset :accessor prefab-asset)
@@ -69,7 +69,7 @@
 (defmethod in-view-p ((skybox skybox) camera)
   (not (transparent-p (trial:scene skybox))))
 
-(define-handler (scene change-scene) (file name camera)
+(define-handler (scene change-scene) (file (name scene) camera actors)
   (setf (camera scene) (node :editor scene))
   (leave* 'room scene)
   (enter (make-instance 'room :name 'room
@@ -84,6 +84,11 @@
   (commit scene (loader +main+))
   (when camera
     (activate-camera camera scene))
+  (loop for (name args) on actors by #'cddr
+        for actor = (actor name)
+        do (if actor
+               (apply #'reinitialize-instance actor args)
+               (cerror "Ignore the setting" "No actor named ~s found!" name)))
   (ignore-errors (reset-render-loop)))
 
 (define-shader-pass post-effects-pass (post-effect-pass)

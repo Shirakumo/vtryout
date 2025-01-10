@@ -3,6 +3,13 @@
 (define-shader-entity actor (basic-animation-controller)
   ())
 
+(defmethod shared-initialize :after ((actor actor) slots &key layers)
+  (dolist (layer layers)
+    (destructuring-bind (name &optional (strength 1.0)) (enlist layer)
+      (if (animation-layer name actor)
+          (setf (animation-layer name actor) strength)
+          (add-animation-layer name actor :strength strength)))))
+
 ;; KLUDGE
 (defmethod enter :after ((entity animated-entity) (controller animation-controller))
   (setf (animation-controller entity) controller))
@@ -12,9 +19,10 @@
          (joint (elt pose bone)))
     #++(!q* (trotation joint) (qfrom-angle +vx+ (deg->rad 45)) (trotation joint))))
 
-(defun actor ()
+(defun actor (&optional name)
   (do-scene-graph (node (scene +main+))
-    (when (typep node 'actor)
+    (when (and (typep node 'actor)
+               (or (not name) (eql name (name node))))
       (return node))))
 
 (defun toggle-layer (name &key (actor (actor)) (strength 1.0))

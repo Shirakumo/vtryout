@@ -1,12 +1,19 @@
 (in-package #:org.shirakumo.fraf.vtryout)
 
+(defun load-scene-description (desc-file)
+  (let ((desc-file (pool-path 'vtryout (pathname-utils:parse-native-namestring desc-file))))
+    (destructuring-bind (&rest args &key file &allow-other-keys) (trial::parse-sexps desc-file)
+      (setf (getf args :file) (merge-pathnames (pathname-utils:parse-native-namestring file) desc-file))
+      args)))
+
 (defclass main (org.shirakumo.fraf.trial.harmony:settings-main
                 org.shirakumo.fraf.trial.notify:main)
   ((trial:scene :initform (make-instance 'scene) :accessor scene)))
 
-(defmethod initialize-instance :after ((main main) &key scene-file (scene T) camera)
+(defmethod initialize-instance :after ((main main) &key scene)
   (org.shirakumo.fraf.trial.notify:watch (find-pool 'vtryout))
-  (when scene-file (issue (scene main) 'change-scene :file scene-file :name scene :camera camera)))
+  (when scene
+    (issue (scene main) (apply #'make-instance 'change-scene (load-scene-description scene)))))
 
 (defmethod trial-harmony:setup-server progn ((main main) server)
   ;; Units are in metres, so adjust accordingly.
