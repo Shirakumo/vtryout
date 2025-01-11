@@ -30,10 +30,7 @@
     (setf (harmony:segment (harmony:name seg) server) seg)))
 
 (defmethod trial-harmony:server-initargs append ((main main))
-  (list :mixers '((:music mixed:basic-mixer :effects ((mixed:biquad-filter :filter :lowpass :name :music-lowpass)))
-                  (:effect mixed:space-mixer))
-        :effects '((mixed:biquad-filter :filter :lowpass :name :lowpass)
-                   (mixed:speed-change :name :speed))
+  (list :mixers '((:effect mixed:space-mixer))
         :source T))
 
 (defun launch (&rest initargs)
