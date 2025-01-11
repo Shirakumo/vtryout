@@ -12,14 +12,16 @@
 (defmethod enter :after ((entity animated-entity) (controller animation-controller))
   (setf (animation-controller entity) controller))
 
+(defun normalize (x lo hi)
+  (/ (- (clamp lo x hi) lo) (- hi lo)))
+
 (defmethod update :before ((actor actor) tt dt fc)
   (let* ((layer (animation-layer :mouth-open actor :if-does-not-exist :create))
          (seg (harmony:segment 'speech-detection T))
          (new (if (speech-p seg)
-                  (/ (- (clamp 300.0 (vy (main-frequency seg)) 800.0) 300.0)
-                     500.0)
+                  (normalize (vy (main-frequency seg)) 300 800)
                   0.0)))
-    (setf (strength layer) (lpf 0.99 (strength layer) new))))
+    (setf (strength layer) (lpf 0.8 (strength layer) new))))
 
 (defun actor (&optional name)
   (do-scene-graph (node (scene +main+))
