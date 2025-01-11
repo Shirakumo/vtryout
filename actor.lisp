@@ -12,9 +12,6 @@
 (defmethod enter :after ((entity animated-entity) (controller animation-controller))
   (setf (animation-controller entity) controller))
 
-(defun normalize (x lo hi)
-  (/ (- (clamp lo x hi) lo) (- hi lo)))
-
 (defmethod update :before ((actor actor) tt dt fc)
   (let* ((layer (animation-layer :mouth-open actor :if-does-not-exist :create))
          (seg (harmony:segment 'speech-detection T))
