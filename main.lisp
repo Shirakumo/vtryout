@@ -25,7 +25,7 @@
         (fft (make-instance 'mixed:fwd-fft :samplerate (harmony:samplerate server)))
         (seg (make-instance 'speech-detection :name 'speech-detection)))
     (harmony:connect input T fft T)
-    (mixed:connect fft 0 seg 0 (mixed:make-buffer 2048))
+    (mixed:connect fft 0 seg 0 (mixed:make-buffer (mixed:framesize fft)))
     (harmony:add-to input fft seg)
     (setf (harmony:segment (harmony:name seg) server) seg)))
 

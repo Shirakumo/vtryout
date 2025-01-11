@@ -2,7 +2,8 @@
 
 (defclass speech-detection (mixed:virtual)
   ((main-frequency :initform (vec3) :accessor main-frequency)
-   (range :initform (cons 300.0 800.0) :accessor range)
+   (volume-range :initform (setting :audio :volume-range) :accessor volume-range)
+   (frequency-range :initform (setting :audio :frequency-range) :accessor frequency-range)
    (speech-p :initform NIL :accessor speech-p)))
 
 (defmethod mixed:info ((segment speech-detection))
@@ -19,11 +20,13 @@
     (declare (type (simple-array single-float (*)) data))
     (when (< 0 size)
       (let ((mag 0f0) (freq 0f0))
-        (loop for i of-type (unsigned-byte 32) from start below (1- (+ start size)) by 2
-              do (when (< mag (aref data (+ i 1)))
-                   (setf mag (aref data (+ i 1)))
-                   (setf freq (aref data (+ i 0)))))
-        (let ((volume (destructuring-bind (lo . hi) (range segment) (normalize mag lo hi))))
+        (destructuring-bind (lo . hi) (frequency-range segment)
+          (declare (type single-float lo hi))
+          (loop for i of-type (unsigned-byte 32) from start below (1- (+ start size)) by 2
+                do (when (and (<= lo (aref data (+ i 0)) hi) (< mag (aref data (+ i 1))))
+                     (setf mag (aref data (+ i 1)))
+                     (setf freq (aref data (+ i 0))))))
+        (let ((volume (destructuring-bind (lo . hi) (volume-range segment) (normalize mag lo hi))))
           (vsetf (the vec3 (main-frequency segment)) freq mag volume)
           (setf (speech-p segment) (< 0.0 volume))))
       (mixed:finish))))

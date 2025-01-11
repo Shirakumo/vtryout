@@ -9,7 +9,9 @@
                          :volume (:master 0.5
                                   :effect 1.0
                                   :speech 1.0
-                                  :music 1.0))
+                                  :music 1.0)
+                         :volume-range (300.0 . 800.0)
+                         :frequency-range (100.0 . 8000.0))
                  :display (:resolution (1280 720)
                            :fullscreen NIL
                            :monitor T
