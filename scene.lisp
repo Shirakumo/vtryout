@@ -71,7 +71,9 @@
 
 (define-handler (scene text-entered) (text)
   (case (char text 0)
-    (#\f (setf (camera scene) (node :editor scene)))))
+    (#\f (setf (camera scene) (node :editor scene)))
+    (#\n (activate-next-camera))
+    (#\p (activate-prev-camera))))
 
 (define-handler (scene change-scene) (file (name scene) camera actors)
   (setf (camera scene) (node :editor scene))

@@ -37,10 +37,32 @@
       (remove-animation-layer name actor)
       (add-animation-layer name actor :strength strength)))
 
-(defun activate-camera (name &optional (scene T))
+(defun activate-camera (name &optional (scene (scene +main+)))
   (with-simple-restart (continue "Don't activate the camera")
     (do-scene-graph (node (node name scene) (error "No camera named ~s" name))
       (when (typep node 'camera)
         (activate node)
         (return)))))
 
+(defun activate-next-camera (&optional (scene (scene +main+)))
+  (let ((found NIL))
+    (or (do-scene-graph (node scene)
+          (when (typep node 'camera)
+            (cond ((eq node (camera scene))
+                   (setf found T))
+                  (found
+                   (return (activate node))))))
+        (do-scene-graph (node scene)
+          (when (typep node 'camera)
+            (return (activate node)))))))
+
+(defun activate-prev-camera (&optional (scene (scene +main+)))
+  (let ((prev NIL))
+    (or (do-scene-graph (node scene)
+          (when (typep node 'camera)
+            (cond ((and prev (eq node (camera scene)))
+                   (return (activate prev)))
+                  (T
+                   (setf prev node)))))
+        (when prev
+          (activate prev)))))
