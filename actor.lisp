@@ -8,6 +8,12 @@
     (destructuring-bind (name &optional (strength 1.0)) (enlist layer)
       (add-animation-layer name actor :strength strength :if-exists :supersede))))
 
+(defmethod fk-update ((actor actor) pose tt dt fc)
+  #++
+  (let* ((bone (node :ORG-SPINE.006 (skeleton actor)))
+         (joint (elt pose bone)))
+    (!q* (trotation joint) (qfrom-angle +vx+ (sin (* 10 tt))) (trotation joint))))
+
 ;; KLUDGE
 (defmethod enter :after ((entity animated-entity) (controller animation-controller))
   (setf (animation-controller entity) controller))
