@@ -32,7 +32,7 @@
       (mixed:finish))))
 
 (define-setting-observer update-params :audio (settings)
-  (let ((seg (harmony:segment 'speech-detection T)))
+  (let ((seg (when harmony:*server* (harmony:segment 'speech-detection T))))
     (when seg
       (setf (volume-range seg) (getf settings :volume-range))
       (setf (frequency-range seg) (getf settings :frequency-range)))))

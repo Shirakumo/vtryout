@@ -69,6 +69,10 @@
 (defmethod in-view-p ((skybox skybox) camera)
   (not (transparent-p (trial:scene skybox))))
 
+(define-handler (scene text-entered) (text)
+  (case (char text 0)
+    (#\f (setf (camera scene) (node :editor scene)))))
+
 (define-handler (scene change-scene) (file (name scene) camera actors)
   (setf (camera scene) (node :editor scene))
   (leave* 'room scene)
