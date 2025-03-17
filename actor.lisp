@@ -16,7 +16,7 @@
   (let* ((layer (animation-layer :mouth-open actor :if-does-not-exist :create))
          (seg (harmony:segment 'speech-detection T))
          (new (if (speech-p seg)
-                  (normalize (vy (main-frequency seg)) 300 800)
+                  (* 1.5 (vz (main-frequency seg)))
                   0.0)))
     (setf (strength layer) (lpf 0.8 (strength layer) new))))
 
