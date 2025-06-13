@@ -18,6 +18,7 @@
    (#:mixed #:org.shirakumo.fraf.mixed)
    (#:3ds #:org.shirakumo.fraf.trial.space)
    (#:gltf #:org.shirakumo.fraf.gltf)
-   (#:trial-gltf #:org.shirakumo.fraf.trial.gltf))
+   (#:trial-gltf #:org.shirakumo.fraf.trial.gltf)
+   (#:bs #:org.shirakumo.binary-structures))
   (:export
    #:launch))

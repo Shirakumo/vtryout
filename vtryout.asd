@@ -10,6 +10,7 @@
   :components ((:file "package")
                (:file "toolkit")
                (:file "speech-detection")
+               (:file "openseeface")
                (:file "actor")
                (:file "scene")
                (:file "main")
@@ -27,4 +28,6 @@
                :trial-hdr
                :alloy-constraint
                :cl-mixed-wav
-               :cl-mixed-opus))
+               :cl-mixed-opus
+               :binary-structures
+               :usocket))
