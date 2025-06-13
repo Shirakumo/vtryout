@@ -7,7 +7,8 @@
       args)))
 
 (defclass main (org.shirakumo.fraf.trial.harmony:settings-main
-                org.shirakumo.fraf.trial.notify:main)
+                org.shirakumo.fraf.trial.notify:main
+                openseeface-main)
   ((trial:scene :initform (make-instance 'scene) :accessor scene)))
 
 (defmethod initialize-instance :after ((main main) &key scene)

@@ -13,8 +13,8 @@
   (face-euler (vector :float32 3))
   (face-location (vector :float32 3))
   (landmarks-confidence (vector :float32 68))
-  (landmarks-2d (vector :float32 (* 68 2)))
-  (landmarks-3d (vector :float32 (* 70 3)))
+  (landmarks-2d (vector :float32 #.(* 68 2)))
+  (landmarks-3d (vector :float32 #.(* 70 3)))
   (eye-left :float32)
   (eye-right :float32)
   ;; Steepness, updown, quirk
@@ -30,17 +30,19 @@
   (let* ((size (bs:octet-size (bs:io-type 'packet)))
          (buffer (make-array size :element-type '(unsigned-byte 8))))
     (declare (dynamic-extent buffer))
-    (loop do (usocket:socket-receive socket buffer size)
-          while (funcall callback (read-packet buffer)))))
+    (loop do (when (usocket:wait-for-input socket :timeout 0.2 :ready-only T)
+               (usocket:socket-receive socket buffer size)
+               (unless (funcall callback (read-packet buffer))
+                 (return))))))
 
 (defun packet-transform (packet)
   (let ((tf (transform)))
     (replace (varr (tlocation tf)) (packet-face-location packet))
     (let ((euler (packet-face-euler packet)))
       (!q* (trotation tf)
-           (qfrom-angle +vx+ (deg->rad (- 180 (aref euler 0))))
-           (qfrom-angle +vz+ (deg->rad (aref euler 1)))
-           (qfrom-angle +vy+ (deg->rad (- (aref euler 2) 90)))))
+           (qfrom-angle +vx+ (deg->rad (+ 180 10 (aref euler 0))))
+           (qfrom-angle +vy+ (deg->rad (- -10 (aref euler 1))))
+           (qfrom-angle +vz+ (deg->rad (- 90 (aref euler 2))))))
     tf))
 
 (define-event face-update ()
@@ -49,28 +51,51 @@
 
 (defun handle-packet (main packet)
   (when (and (context main) (openseeface-socket main))
-    (issue main 'face-update
-           :packet packet
-           :local-transform (packet-transform packet))
+    (handle (make-event 'face-update
+                        :packet packet
+                        :local-transform (packet-transform packet))
+            main)
     T))
 
-(defclass openseeface-main (main)
-  ((receive-thread :initform NIL :accessor receive-thread)
+(defclass openseeface-main (trial:main)
+  ((openseeface-thread :initform NIL :accessor openseeface-thread)
+   (openseeface-process :initform NIL :accessor openseeface-process)
    (openseeface-socket :initform NIL :accessor openseeface-socket)))
 
 (defmethod initialize-instance :after ((main openseeface-main) &key (openseeface-host "localhost")
-                                                                    (openseeface-port 11573))
-  (let ((socket (usocket:socket-connect openseeface-host openseeface-port
+                                                                    (openseeface-port 11573)
+                                                                    (launch-openseeface T))
+  (when launch-openseeface
+    (v:info :vtryout.openseeface "Launching OpenSeeFace")
+    (setf (openseeface-process main)
+          (uiop:launch-program (etypecase launch-openseeface
+                                 (string (list launch-openseeface))
+                                 (cons launch-openseeface)
+                                 ((eql T) (list "python" (uiop:native-namestring (merge-pathnames "OpenSeeFace/facetracker.py" (data-root)))))))))
+  (v:info :vtryout.openseeface "Listening for OpenSeeFace packets on ~a:~a"
+          openseeface-host openseeface-port)
+  (let ((socket (usocket:socket-connect NIL NIL
+                                        :local-host openseeface-host
+                                        :local-port openseeface-port
                                         :protocol :datagram
                                         :element-type '(unsigned-byte 8))))
     (setf (openseeface-socket main) socket)
     (flet ((thunk ()
-             (receive-packets (lambda (packet) (handle-packet main packet)) socket)))
-      (setf (receive-thread main) (make-thread "openseeface-receiver" #'thunk)))))
+             (unwind-protect
+                  (ignore-errors
+                   (with-error-logging (:vtryout.openseeface)
+                     (receive-packets (lambda (packet) (handle-packet main packet)) socket)))
+               (v:info :vtryout.openseeface "Exiting OpenSeeFace packet receiver"))))
+      (setf (openseeface-thread main) (make-thread "openseeface-receiver" #'thunk)))))
 
 (defmethod finalize :after ((main openseeface-main))
   (let ((socket (openseeface-socket main)))
     (when socket
       (setf (openseeface-socket main) NIL)
       (usocket:socket-close socket)
-      (wait-for-thread-exit (receive-thread main)))))
+      (wait-for-thread-exit (openseeface-thread main))))
+  (let ((process (openseeface-process main)))
+    (when (and process (uiop:process-alive-p process))
+      (v:info :vtryout.openseeface "Killing OpenSeeFace")
+      (uiop:terminate-process process)
+      (setf (openseeface-process main) NIL))))
