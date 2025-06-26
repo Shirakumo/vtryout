@@ -100,7 +100,9 @@
       (update lerp (blink-left pose) (max -0.7 (+ -1.0 (packet-blink-left packet))))
       (update lerp (blink-right pose) (max -0.7 (+ -1.0 (packet-blink-right packet))))
       (update qnlerp (eye-left pose) (qfrom-angle +vx+ (- (* 0.5 (packet-eye-left packet)) 0.4)))
-      (update qnlerp (eye-right pose) (qfrom-angle +vx+ (- (* 0.5 (packet-eye-right packet)) 0.4))))))
+      (update qnlerp (eye-right pose) (qfrom-angle +vx+ (- (* 0.5 (packet-eye-right packet)) 0.4)))
+      (let ((freq (main-frequency (harmony:segment 'speech-detection T))))
+        (update lerp (jaw-open pose) (* 2 (vz freq)))))))
 
 (defun actor (&optional name)
   (do-scene-graph (node (scene +main+))
