@@ -37,7 +37,10 @@
 
 (defun packet-transform (packet)
   (let ((tf (transform)))
-    (replace (varr (tlocation tf)) (packet-face-location packet))
+    (vsetf (tlocation tf)
+          (aref (packet-face-location packet) 1)
+          (aref (packet-face-location packet) 0)
+          (aref (packet-face-location packet) 2))
     (let ((euler (packet-face-euler packet)))
       (!q* (trotation tf)
            (qfrom-angle +vx+ (deg->rad (+ 180 10 (aref euler 0))))
@@ -56,22 +59,23 @@
                         :local-transform (packet-transform packet))
             main)
     T))
+960 720
 
 (defclass openseeface-main (trial:main)
   ((openseeface-thread :initform NIL :accessor openseeface-thread)
    (openseeface-process :initform NIL :accessor openseeface-process)
    (openseeface-socket :initform NIL :accessor openseeface-socket)))
 
-(defmethod initialize-instance :after ((main openseeface-main) &key (openseeface-host "localhost")
-                                                                    (openseeface-port 11573)
-                                                                    (launch-openseeface T))
+(defmethod initialize-instance :after ((main openseeface-main) &key (openseeface-host (setting :openseeface :host))
+                                                                    (openseeface-port (setting :openseeface :port))
+                                                                    (launch-openseeface (setting :openseeface :launch)))
   (when launch-openseeface
     (v:info :vtryout.openseeface "Launching OpenSeeFace")
     (setf (openseeface-process main)
-          (uiop:launch-program (etypecase launch-openseeface
-                                 (string (list launch-openseeface))
-                                 (cons launch-openseeface)
-                                 ((eql T) (list "python" (uiop:native-namestring (merge-pathnames "OpenSeeFace/facetracker.py" (data-root)))))))))
+          (uiop:launch-program (list "python" (uiop:native-namestring (merge-pathnames "OpenSeeFace/facetracker.py" (data-root)))
+                                     "-W" (princ-to-string (setting :openseeface :width))
+                                     "-H" (princ-to-string (setting :openseeface :height))
+                                     "-F" (princ-to-string (setting :openseeface :framerate))))))
   (v:info :vtryout.openseeface "Listening for OpenSeeFace packets on ~a:~a"
           openseeface-host openseeface-port)
   (let ((socket (usocket:socket-connect NIL NIL

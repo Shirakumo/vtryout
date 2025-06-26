@@ -28,6 +28,12 @@
                            :texture (:filter :trilinear
                                      :anisotropy 2))
                  :language :system
+                 :openseeface (:launch T
+                               :host "localhost"
+                               :port 11573
+                               :width 640
+                               :height 480
+                               :framerate 60)
                  :debugging (:show-debug-settings #+release NIL #-release T
                              :send-diagnostics T
                              :remote-debug (:active NIL :port 4005)
