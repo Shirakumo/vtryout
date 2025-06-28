@@ -29,10 +29,11 @@
                                      :anisotropy 2))
                  :language :system
                  :openseeface (:launch T
+                               :binary ("openseeface.sh")
                                :host "localhost"
                                :port 11573
-                               :width 640
-                               :height 480
+                               :width 1280
+                               :height 720
                                :framerate 60)
                  :debugging (:show-debug-settings #+release NIL #-release T
                              :send-diagnostics T

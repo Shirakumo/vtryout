@@ -66,21 +66,25 @@
    (openseeface-process :initform NIL :accessor openseeface-process)
    (openseeface-socket :initform NIL :accessor openseeface-socket)))
 
-(defmethod initialize-instance :after ((main openseeface-main) &key (openseeface-host (setting :openseeface :host))
-                                                                    (openseeface-port (setting :openseeface :port))
-                                                                    (launch-openseeface (setting :openseeface :launch)))
-  (when launch-openseeface
+(defmethod initialize-instance :after ((main openseeface-main) &key)
+  (when (setting :openseeface :launch)
     (v:info :vtryout.openseeface "Launching OpenSeeFace")
+    (uiop:chdir (data-root))
     (setf (openseeface-process main)
-          (uiop:launch-program (list "python" (uiop:native-namestring (merge-pathnames "OpenSeeFace/facetracker.py" (data-root)))
-                                     "-W" (princ-to-string (setting :openseeface :width))
-                                     "-H" (princ-to-string (setting :openseeface :height))
-                                     "-F" (princ-to-string (setting :openseeface :framerate))))))
+          (uiop:launch-program (print (append (setting :openseeface :binary)
+                                              (list
+                                               "-s" "1"
+                                               "-i" (setting :openseeface :host)
+                                               "-p" (princ-to-string (setting :openseeface :port))
+                                               "-W" (princ-to-string (setting :openseeface :width))
+                                               "-H" (princ-to-string (setting :openseeface :height))
+                                               "-F" (princ-to-string (setting :openseeface :framerate)))))
+                               :output *error-output* :error-output *error-output*)))
   (v:info :vtryout.openseeface "Listening for OpenSeeFace packets on ~a:~a"
-          openseeface-host openseeface-port)
+          (setting :openseeface :host) (setting :openseeface :port))
   (let ((socket (usocket:socket-connect NIL NIL
-                                        :local-host openseeface-host
-                                        :local-port openseeface-port
+                                        :local-host (setting :openseeface :host)
+                                        :local-port (setting :openseeface :port)
                                         :protocol :datagram
                                         :element-type '(unsigned-byte 8))))
     (setf (openseeface-socket main) socket)
